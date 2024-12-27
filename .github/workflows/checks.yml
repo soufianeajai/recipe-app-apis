@@ -5,15 +5,26 @@ on: [push]
 
 jobs:
   test-lint:
-    name: Test and lint
+    name: Test and Lint
     runs-on: ubuntu-20.04
     steps:
-      - name: logging to dockerhub
+      - name: Logging to DockerHub
         uses: docker/login-action@v2
         with:
-          username: ${{secrets.DOCKERHUB_USER}}
-          password: ${{secrets.DOCKERHUB_TOKEN}}
-      - name: Checkout
+          username: ${{ secrets.DOCKERHUB_USER }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Checkout Repository
         uses: actions/checkout@v3
-      - name: test
-        run: docker-compose run --rm app sh -c "python manage.py test" 
+
+      - name: Install Docker Compose
+        run: |
+          sudo curl -L "https://github.com/docker/compose/releases/latest/download/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
+          sudo chmod +x /usr/local/bin/docker-compose
+          docker-compose --version
+
+      - name: Run Tests
+        run: docker-compose run --rm app sh -c "python manage.py test"
+
+      - name: Run Linting
+        run: docker-compose run --rm app sh -c "flake8 ."
